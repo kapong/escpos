@@ -477,6 +477,39 @@ func (e *Escpos) gSend(m byte, fn byte, data []byte) {
 	e.WriteRaw(data)
 }
 
+// Barcode sends a barcode to the printer.
+func (e *Escpos) Barcode(barcode string, format int) {
+	code := ""
+	switch format {
+	case 0:
+		code = "\x00"
+	case 1:
+		code = "\x01"
+	case 2:
+		code = "\x02"
+	case 3:
+		code = "\x03"
+	case 4:
+		code = "\x04"
+	case 73:
+		code = "\x49"
+	}
+
+	// reset settings
+	e.reset()
+
+	// set align
+	e.SetAlign("center")
+
+	// write barcode
+	if format > 69 {
+		e.Write(fmt.Sprintf("\x1dk"+code+"%v%v", len(barcode), barcode))
+	} else if format < 69 {
+		e.Write(fmt.Sprintf("\x1dk"+code+"%v\x00", barcode))
+	}
+	e.Write(fmt.Sprintf("%v", barcode))
+}
+
 // Image write an image
 func (e *Escpos) Image(params map[string]string, data string) {
 	// send alignment to printer
